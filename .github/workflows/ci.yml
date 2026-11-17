@@ -1,18 +1,15 @@
-name: Python CI Pipeline
+name: Python Continuous Delivery
 
 on:
   push:
-    branches: [main]
-
-  pull_request:
-    branches: [main]
+    branches: ["main"]
 
 jobs:
-  test:
+  build-and-test:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout code
+      - name: Checkout repository
         uses: actions/checkout@v4
 
       - name: Set up Python
@@ -20,5 +17,49 @@ jobs:
         with:
           python-version: '3.12'
 
+      - name: Install dependencies
+        run: python -m pip install --upgrade pip
+
       - name: Run tests
         run: python -m unittest discover -v
+
+      - name: Package build artifact
+        run: |
+          mkdir -p dist
+          cp app.py test_app.py dist/
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-package
+          path: dist/
+
+  deploy-staging:
+    needs: build-and-test
+    runs-on: ubuntu-latest
+    environment: staging
+
+    steps:
+      - name: Download artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: app-package
+          path: dist/
+
+      - name: Deploy to Staging
+        run: echo "Deploying artifact to Staging environment..."
+
+  deploy-production:
+    needs: deploy-staging
+    runs-on: ubuntu-latest
+    environment: production
+
+    steps:
+      - name: Download artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: app-package
+          path: dist/
+
+      - name: Deploy to Production
+        run: echo "Manual approval granted! Deploying artifact to Production..."
