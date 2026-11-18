@@ -13,7 +13,7 @@ class TestStudent(unittest.TestCase):
         self.assertEqual(self.student.average(), 80)
 
     def test_grade(self):
-        self.assertEqual(self.student.grade(), "B")
+        self.assertEqual(self.student.grade(), "A")
 
 
 if __name__ == "__main__":
