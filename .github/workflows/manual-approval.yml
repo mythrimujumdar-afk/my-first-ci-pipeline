@@ -5,14 +5,13 @@ on:
   workflow_dispatch:
     inputs:
       approval:
-        description: 'Type yes to approve deployment'
+        description: 'Type yes to approve production deployment'
         required: true
         type: string
 
 jobs:
   build-and-test:
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -25,11 +24,17 @@ jobs:
       - name: Run tests
         run: python -m unittest discover -v
 
-  production:
+  deploy-staging:
     needs: build-and-test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy to Staging
+        run: echo "Deploying to Staging..."
+
+  production:
+    needs: deploy-staging
     if: ${{ inputs.approval == 'yes' }}
     runs-on: ubuntu-latest
-
     steps:
-      - name: Deployment approved
-        run: echo "Manual approval received. Deployment started!"
+      - name: Deploy to Production
+        run: echo "Approval received. Deploying to Production..."
